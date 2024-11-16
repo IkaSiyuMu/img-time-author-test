@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>查看数据</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        #output {
+            text-align: center;
+            margin-top: 20px;
+        }
+        img {
+            max-width: 400px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="showRandomData()">查看</button>
+    <div id="output"></div>
+
+</body>
+</html>
+
+<script>
+// 初始化三个数组
+let timeArray = [];
+let idArray = [];
+let urlArray = [];
+let dataLoaded = false;
+
+// 从 JSON 文件加载数据
+function loadData() {
+    fetch('img_author_time.json')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('无法加载 JSON 文件');
+            }
+            return response.json();
+        })
+        .then(data => {
+            data.forEach(item => {
+                timeArray.push(item["时间"]);
+                idArray.push(item["b站接力的ID （方便接力）"]);
+                urlArray.push(item["url"]);
+            });
+            dataLoaded = true;
+            console.log('数据加载成功');
+        })
+        .catch(error => {
+            console.error('加载 JSON 文件失败:', error);
+        });
+}
+
+// 加载数据
+loadData();
+
+// 点击按钮时显示随机数据
+function showRandomData() {
+    const output = document.getElementById('output');
+
+    if (!dataLoaded || timeArray.length === 0) {
+        output.innerHTML = "数据尚未加载，请稍后重试。";
+        return;
+    }
+
+    // 随机选择一个索引
+    const index = Math.floor(Math.random() * timeArray.length);
+
+    // 检查 URL 是否有效
+    const imgURL = urlArray[index];
+    const img = new Image();
+    img.src = imgURL;
+    img.referrerPolicy = 'no-referrer';
+    img.onload = function () {
+        output.innerHTML = `
+            <p>时间是：${timeArray[index]}</p>
+            <p>B站ID是：${idArray[index]}</p>
+        `;
+        output.appendChild(img);
+    };
+    img.onerror = function (error) {
+        console.error('图片加载失败:', error);
+        output.innerHTML = `<p>图片加载失败，请检查 URL：${imgURL}</p>`;
+    };
+}
+
+</script>
